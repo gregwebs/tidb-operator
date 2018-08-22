@@ -1,6 +1,7 @@
 # TiDB Operator
 
 [![Build Status](https://internal.pingcap.net/jenkins/job/build_tidb_operator_master/badge/icon)](https://internal.pingcap.net/jenkins/job/build_tidb_operator_master)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fgregwebs%2Ftidb-operator.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fgregwebs%2Ftidb-operator?ref=badge_shield)
 
 TiDB Operator manages [TiDB](https://github.com/pingcap/tidb) clusters on [Kubernetes](https://kubernetes.io) and automates tasks related to operating a TiDB cluster. It makes TiDB a truly cloud-native database.
 
@@ -49,3 +50,6 @@ Contributions are welcome and greatly appreciated. See [CONTRIBUTING.md](./docs/
 ## License
 
 TiDB is under the Apache 2.0 license. See the [LICENSE](./LICENSE) file for details.
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fgregwebs%2Ftidb-operator.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fgregwebs%2Ftidb-operator?ref=badge_large)
