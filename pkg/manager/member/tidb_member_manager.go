@@ -79,17 +79,25 @@ func (tmm *tidbMemberManager) Sync(tc *v1alpha1.TidbCluster) error {
 	ns := tc.GetNamespace()
 	tcName := tc.GetName()
 
+	// Sync Tidb StatefulSet
+	if err := tmm.syncTiDBStatefulSetForTidbCluster(tc); err != nil {
+		return err
+	}
+
 	if !tc.TiKVIsAvailable() {
 		return controller.RequeueErrorf("TidbCluster: [%s/%s], waiting for TiKV cluster running", ns, tcName)
 	}
 
-	// Sync TiDB Headless Service
-	if err := tmm.syncTiDBHeadlessServiceForTidbCluster(tc); err != nil {
+	if err := tmm.stopDelayStartupInitContainer(); err != nil {
 		return err
 	}
 
-	// Sync Tidb StatefulSet
-	return tmm.syncTiDBStatefulSetForTidbCluster(tc)
+	// Sync TiDB Headless Service
+	return tmm.syncTiDBHeadlessServiceForTidbCluster(tc)
+}
+
+func (tmm *tidbMemberManager) stopDelayStartupInitContainer() error {
+	return nil
 }
 
 func (tmm *tidbMemberManager) syncTiDBHeadlessServiceForTidbCluster(tc *v1alpha1.TidbCluster) error {

@@ -95,8 +95,16 @@ func (tkmm *tikvMemberManager) Sync(tc *v1alpha1.TidbCluster) error {
 	ns := tc.GetNamespace()
 	tcName := tc.GetName()
 
+	if err := tkmm.syncStatefulSetForTidbCluster(tc); err != nil {
+		return err
+	}
+
 	if !tc.PDIsAvailable() {
 		return controller.RequeueErrorf("TidbCluster: [%s/%s], waiting for PD cluster running", ns, tcName)
+	}
+
+	if err := tkmm.stopDelayStartupInitContainer(); err != nil {
+		return err
 	}
 
 	svcList := []SvcConfig{
@@ -113,7 +121,12 @@ func (tkmm *tikvMemberManager) Sync(tc *v1alpha1.TidbCluster) error {
 			return err
 		}
 	}
-	return tkmm.syncStatefulSetForTidbCluster(tc)
+
+	return nil
+}
+
+func (tkmm *tikvMemberManager) stopDelayStartupInitContainer() error {
+	return nil
 }
 
 func (tkmm *tikvMemberManager) syncServiceForTidbCluster(tc *v1alpha1.TidbCluster, svcConfig SvcConfig) error {
