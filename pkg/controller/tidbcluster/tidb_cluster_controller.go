@@ -72,6 +72,7 @@ func NewController(
 	informerFactory informers.SharedInformerFactory,
 	kubeInformerFactory kubeinformers.SharedInformerFactory,
 	autoFailover bool,
+	operatorImage string,
 	pdFailoverPeriod time.Duration,
 	tikvFailoverPeriod time.Duration,
 	tidbFailoverPeriod time.Duration,
@@ -137,6 +138,7 @@ func NewController(
 				podInformer.Lister(),
 				nodeInformer.Lister(),
 				autoFailover,
+				operatorImage,
 				tikvFailover,
 				tikvScaler,
 				tikvUpgrader,
@@ -150,6 +152,7 @@ func NewController(
 				podInformer.Lister(),
 				tidbUpgrader,
 				autoFailover,
+				operatorImage,
 				tidbFailover,
 			),
 			meta.NewReclaimPolicyManager(

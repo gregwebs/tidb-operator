@@ -60,7 +60,7 @@ func (pdc *defaultPDControl) GetPDClient(tc *v1alpha1.TidbCluster) PDClient {
 	tcName := tc.GetName()
 	key := pdClientKey(namespace, tcName)
 	if _, ok := pdc.pdClients[key]; !ok {
-		pdc.pdClients[key] = NewPDClient(pdClientURL(namespace, tcName), timeout)
+		pdc.pdClients[key] = NewPDClient(PdClientURL(namespace, tcName), timeout)
 	}
 	return pdc.pdClients[key]
 }
@@ -70,8 +70,8 @@ func pdClientKey(namespace, clusterName string) string {
 	return fmt.Sprintf("%s.%s", clusterName, namespace)
 }
 
-// pdClientUrl builds the url of pd client
-func pdClientURL(namespace, clusterName string) string {
+// PdClientUrl builds the url of pd client
+func PdClientURL(namespace, clusterName string) string {
 	return fmt.Sprintf("http://%s-pd.%s:2379", clusterName, namespace)
 }
 

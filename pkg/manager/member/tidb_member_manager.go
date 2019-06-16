@@ -47,6 +47,7 @@ type tidbMemberManager struct {
 	podLister                    corelisters.PodLister
 	tidbUpgrader                 Upgrader
 	autoFailover                 bool
+	operatorImage                string
 	tidbFailover                 Failover
 	tidbStatefulSetIsUpgradingFn func(corelisters.PodLister, *apps.StatefulSet, *v1alpha1.TidbCluster) (bool, error)
 }
@@ -60,6 +61,7 @@ func NewTiDBMemberManager(setControl controller.StatefulSetControlInterface,
 	podLister corelisters.PodLister,
 	tidbUpgrader Upgrader,
 	autoFailover bool,
+	operatorImage string,
 	tidbFailover Failover) manager.Manager {
 	return &tidbMemberManager{
 		setControl:                   setControl,
@@ -70,6 +72,7 @@ func NewTiDBMemberManager(setControl controller.StatefulSetControlInterface,
 		podLister:                    podLister,
 		tidbUpgrader:                 tidbUpgrader,
 		autoFailover:                 autoFailover,
+		operatorImage:                operatorImage,
 		tidbFailover:                 tidbFailover,
 		tidbStatefulSetIsUpgradingFn: tidbStatefulSetIsUpgrading,
 	}
@@ -355,13 +358,14 @@ func (tmm *tidbMemberManager) getNewTiDBSetForTidbCluster(tc *v1alpha1.TidbClust
 					Annotations: podAnnotations,
 				},
 				Spec: corev1.PodSpec{
-					SchedulerName: tc.Spec.SchedulerName,
-					Affinity:      tc.Spec.TiDB.Affinity,
-					NodeSelector:  tc.Spec.TiDB.NodeSelector,
-					Containers:    containers,
-					RestartPolicy: corev1.RestartPolicyAlways,
-					Tolerations:   tc.Spec.TiDB.Tolerations,
-					Volumes:       vols,
+					SchedulerName:  tc.Spec.SchedulerName,
+					Affinity:       tc.Spec.TiDB.Affinity,
+					NodeSelector:   tc.Spec.TiDB.NodeSelector,
+					InitContainers: []corev1.Container{WaitForPDContainer(tc.GetName(), tmm.operatorImage)},
+					Containers:     containers,
+					RestartPolicy:  corev1.RestartPolicyAlways,
+					Tolerations:    tc.Spec.TiDB.Tolerations,
+					Volumes:        vols,
 				},
 			},
 			ServiceName:         controller.TiDBPeerMemberName(tcName),

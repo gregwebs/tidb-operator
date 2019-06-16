@@ -42,6 +42,9 @@ discovery:
 admission-controller:
 	$(GO) -ldflags '$(LDFLAGS)' -o images/tidb-operator/bin/tidb-admission-controller cmd/admission-controller/main.go
 
+wait-for-pd:
+	$(GO) -ldflags '$(LDFLAGS)' -o images/tidb-operator/bin/wait-for-pd cmd/wait-for-pd/main.go
+
 e2e-setup:
 	# ginkgo doesn't work with retool for Go 1.11
 	@GO111MODULE=on CGO_ENABLED=0 go get github.com/onsi/ginkgo@v1.6.0

@@ -46,6 +46,7 @@ type tikvMemberManager struct {
 	podLister                    corelisters.PodLister
 	nodeLister                   corelisters.NodeLister
 	autoFailover                 bool
+	operatorImage                string
 	tikvFailover                 Failover
 	tikvScaler                   Scaler
 	tikvUpgrader                 Upgrader
@@ -61,21 +62,23 @@ func NewTiKVMemberManager(pdControl controller.PDControlInterface,
 	podLister corelisters.PodLister,
 	nodeLister corelisters.NodeLister,
 	autoFailover bool,
+	operatorImage string,
 	tikvFailover Failover,
 	tikvScaler Scaler,
 	tikvUpgrader Upgrader) manager.Manager {
 	kvmm := tikvMemberManager{
-		pdControl:    pdControl,
-		podLister:    podLister,
-		nodeLister:   nodeLister,
-		setControl:   setControl,
-		svcControl:   svcControl,
-		setLister:    setLister,
-		svcLister:    svcLister,
-		autoFailover: autoFailover,
-		tikvFailover: tikvFailover,
-		tikvScaler:   tikvScaler,
-		tikvUpgrader: tikvUpgrader,
+		pdControl:     pdControl,
+		podLister:     podLister,
+		nodeLister:    nodeLister,
+		setControl:    setControl,
+		svcControl:    svcControl,
+		setLister:     setLister,
+		svcLister:     svcLister,
+		autoFailover:  autoFailover,
+		operatorImage: operatorImage,
+		tikvFailover:  tikvFailover,
+		tikvScaler:    tikvScaler,
+		tikvUpgrader:  tikvUpgrader,
 	}
 	kvmm.tikvStatefulSetIsUpgradingFn = tikvStatefulSetIsUpgrading
 	return &kvmm
@@ -348,9 +351,10 @@ func (tkmm *tikvMemberManager) getNewSetForTidbCluster(tc *v1alpha1.TidbCluster)
 					Annotations: podAnnotations,
 				},
 				Spec: corev1.PodSpec{
-					SchedulerName: tc.Spec.SchedulerName,
-					Affinity:      tc.Spec.TiKV.Affinity,
-					NodeSelector:  tc.Spec.TiKV.NodeSelector,
+					SchedulerName:  tc.Spec.SchedulerName,
+					Affinity:       tc.Spec.TiKV.Affinity,
+					NodeSelector:   tc.Spec.TiKV.NodeSelector,
+					InitContainers: []corev1.Container{WaitForPDContainer(tc.GetName(), tkmm.operatorImage)},
 					Containers: []corev1.Container{
 						{
 							Name:            v1alpha1.TiKVMemberType.String(),
