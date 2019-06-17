@@ -48,7 +48,4 @@ spec:
           - name: TZ
             value: {{ .Values.timezone | default "UTC" }}
           - name: MY_IMAGE
-            valueFrom:
-              resourceFieldRef:
-                containerName: tidb-operator
-                resource: image
+            value: "{{ .Values.operatorImage }}"

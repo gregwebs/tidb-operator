@@ -53,6 +53,7 @@ func main() {
 			glog.Errorf("Error using pdClient to get members %v", err)
 		}
 		if len(membersInfo.Members) > 0 {
+			glog.Infof("Found a PD member. Exiting now.")
 			break
 		}
 		time.Sleep(oneSecond)
