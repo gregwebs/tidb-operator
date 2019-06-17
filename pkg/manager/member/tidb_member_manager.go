@@ -91,16 +91,8 @@ func (tmm *tidbMemberManager) Sync(tc *v1alpha1.TidbCluster) error {
 		return controller.RequeueErrorf("TidbCluster: [%s/%s], waiting for TiKV cluster running", ns, tcName)
 	}
 
-	if err := tmm.stopDelayStartupInitContainer(); err != nil {
-		return err
-	}
-
 	// Sync TiDB Headless Service
 	return tmm.syncTiDBHeadlessServiceForTidbCluster(tc)
-}
-
-func (tmm *tidbMemberManager) stopDelayStartupInitContainer() error {
-	return nil
 }
 
 func (tmm *tidbMemberManager) syncTiDBHeadlessServiceForTidbCluster(tc *v1alpha1.TidbCluster) error {

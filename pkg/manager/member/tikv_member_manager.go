@@ -95,18 +95,7 @@ type SvcConfig struct {
 
 // Sync fulfills the manager.Manager interface
 func (tkmm *tikvMemberManager) Sync(tc *v1alpha1.TidbCluster) error {
-	ns := tc.GetNamespace()
-	tcName := tc.GetName()
-
 	if err := tkmm.syncStatefulSetForTidbCluster(tc); err != nil {
-		return err
-	}
-
-	if !tc.PDIsAvailable() {
-		return controller.RequeueErrorf("TidbCluster: [%s/%s], waiting for PD cluster running", ns, tcName)
-	}
-
-	if err := tkmm.stopDelayStartupInitContainer(); err != nil {
 		return err
 	}
 
@@ -125,10 +114,6 @@ func (tkmm *tikvMemberManager) Sync(tc *v1alpha1.TidbCluster) error {
 		}
 	}
 
-	return nil
-}
-
-func (tkmm *tikvMemberManager) stopDelayStartupInitContainer() error {
 	return nil
 }
 
@@ -195,6 +180,10 @@ func (tkmm *tikvMemberManager) syncStatefulSetForTidbCluster(tc *v1alpha1.TidbCl
 		}
 		tc.Status.TiKV.StatefulSet = &apps.StatefulSetStatus{}
 		return nil
+	}
+
+	if !tc.PDIsAvailable() {
+		return controller.RequeueErrorf("TidbCluster: [%s/%s], waiting for PD cluster running", ns, tcName)
 	}
 
 	oldSet := oldSetTmp.DeepCopy()
