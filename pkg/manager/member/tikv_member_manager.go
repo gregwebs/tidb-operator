@@ -95,8 +95,14 @@ type SvcConfig struct {
 
 // Sync fulfills the manager.Manager interface
 func (tkmm *tikvMemberManager) Sync(tc *v1alpha1.TidbCluster) error {
+	ns := tc.GetNamespace()
+	tcName := tc.GetName()
 	if err := tkmm.syncStatefulSetForTidbCluster(tc); err != nil {
 		return err
+	}
+
+	if !tc.PDIsAvailable() {
+		return controller.RequeueErrorf("TidbCluster: [%s/%s], waiting for PD cluster running", ns, tcName)
 	}
 
 	svcList := []SvcConfig{
