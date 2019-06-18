@@ -51,7 +51,7 @@ func main() {
 		membersInfo, err := pdClient.GetMembers()
 		if err != nil {
 			glog.Errorf("Error using pdClient to get members %v", err)
-		} else if len(membersInfo.Members) > 0 {
+		} else if membersInfo.Leader != nil {
 			glog.Infof("Found a PD member. Exiting now.")
 			break
 		}
