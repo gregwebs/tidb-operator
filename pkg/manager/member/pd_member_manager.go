@@ -197,7 +197,7 @@ func (pmm *pdMemberManager) syncPDStatefulSetForTidbCluster(tc *v1alpha1.TidbClu
     oldPDSet := oldPDSetTmp.DeepCopy()
 
     if err := pmm.syncTidbClusterStatus(tc, oldPDSet); err != nil {
-        glog.Errorf("failed to sync TidbCluster: [%s/%s]'s status, error: %v", ns, tcName, err)
+        return fmt.Errorf("failed to sync TidbCluster: [%s/%s]'s status, error: %v", ns, tcName, err)
     }
 
     if !templateEqual(newPDSet.Spec.Template, oldPDSet.Spec.Template) || tc.Status.PD.Phase == v1alpha1.UpgradePhase {
