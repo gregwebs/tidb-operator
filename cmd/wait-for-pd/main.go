@@ -15,7 +15,7 @@ package main
 
 import (
 	"github.com/golang/glog"
-	"github.com/pingcap/tidb-operator/pkg/controller"
+	"github.com/pingcap/tidb-operator/pkg/apis/pdapi"
 	"k8s.io/apiserver/pkg/util/logs"
 
 	"os"
@@ -45,7 +45,7 @@ func main() {
 		glog.Fatalf("Expected NAMESPACE env variable to be set")
 	}
 
-	pdClient := controller.NewPDClient(controller.PdClientURL(namespace, tcName), timeout)
+	pdClient := pdapi.NewPDClient(pdapi.PdClientURL(pdapi.Namespace(namespace), tcName), timeout)
 
 	for {
 		membersInfo, err := pdClient.GetMembers()
