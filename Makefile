@@ -11,7 +11,8 @@ GOENV  := GO15VENDOREXPERIMENT="1" GO111MODULE=on CGO_ENABLED=0 GOOS=$(GOOS) GOA
 GO     := $(GOENV) go build
 GOTEST := CGO_ENABLED=0 GO111MODULE=on go test -v -cover
 
-LDFLAGS = $(shell ./hack/version.sh)
+# Set DEBUGGER to build debug symbols
+LDFLAGS = $(if $(DEBUGGER),,-s -w) $(shell ./hack/version.sh)
 
 DOCKER_REGISTRY := $(if $(DOCKER_REGISTRY),$(DOCKER_REGISTRY),localhost:5000)
 
@@ -43,7 +44,7 @@ admission-controller:
 	$(GO) -ldflags '$(LDFLAGS)' -o images/tidb-operator/bin/tidb-admission-controller cmd/admission-controller/main.go
 
 wait-for-pd:
-	$(GO) -ldflags '-s -w $(LDFLAGS)' -o images/tidb-operator/bin/wait-for-pd cmd/wait-for-pd/main.go
+	$(GO) -ldflags '$(LDFLAGS)' -o images/tidb-operator/bin/wait-for-pd cmd/wait-for-pd/main.go
 
 e2e-setup:
 	# ginkgo doesn't work with retool for Go 1.11
