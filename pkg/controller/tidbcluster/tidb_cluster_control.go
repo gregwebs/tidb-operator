@@ -142,7 +142,7 @@ func (tcc *defaultTidbClusterControl) updateTidbCluster(tc *v1alpha1.TidbCluster
 	//   - upgrade the tidb cluster
 	//   - scale out/in the tidb cluster
 	//   - failover the tidb cluster
-	if err := tcc.tidbMemberManager.Sync(tc); err != nil {
+	if err := checkRequeue(tcc.tidbMemberManager.Sync(tc)); err != nil {
 		return err
 	}
 
