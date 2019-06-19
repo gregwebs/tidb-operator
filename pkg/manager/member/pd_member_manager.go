@@ -264,21 +264,18 @@ func (pmm *pdMemberManager) syncTidbClusterStatus(tc *v1alpha1.TidbCluster, set 
 
     healthInfo, err := pdClient.GetHealth()
     if err != nil {
-        notSynced := tc.Status.PD.Synced == false
         tc.Status.PD.Synced = false
         // get endpoints info
         eps, epErr := pmm.epsLister.Endpoints(ns).Get(controller.PDMemberName(tcName))
         if epErr != nil {
-            return fmt.Errorf("%s, %s", err, epErr)
+            err = fmt.Errorf("%s, %s", err, epErr)
+        } else {
+            // pd service has no endpoints
+            if eps != nil && len(eps.Subsets) == 0 {
+                err = fmt.Errorf("%s, service %s/%s has no endpoints", err, ns, controller.PDMemberName(tcName))
+            }
         }
-        // pd service has no endpoints
-        if eps != nil && len(eps.Subsets) == 0 {
-            return fmt.Errorf("%s, service %s/%s has no endpoints", err, ns, controller.PDMemberName(tcName))
-        }
-        if notSynced && tc.Status.PD.StatefulSet.ReadyReplicas != tc.Status.PD.StatefulSet.Replicas {
-            return controller.RequeueErrorf("error getting PD health %v", err)
-        }
-        return err
+        return controller.RequeueErrorf("error getting PD health: %v", err)
     }
 
     cluster, err := pdClient.GetCluster()

@@ -89,8 +89,10 @@ func (tcc *defaultTidbClusterControl) updateTidbCluster(tc *v1alpha1.TidbCluster
 	// This allows us to immediately create all the statefulsets
 	var requeueError error
 	checkRequeue := func(err error) error {
-		if requeueError == nil && perrors.Find(err, controller.IsRequeueError) != nil {
-			requeueError = err
+		if perrors.Find(err, controller.IsRequeueError) != nil {
+			if requeueError == nil {
+				requeueError = err
+			}
 			return nil
 		}
 		return err
