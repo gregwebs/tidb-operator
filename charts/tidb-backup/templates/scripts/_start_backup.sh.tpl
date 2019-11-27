@@ -15,9 +15,17 @@ fi
 gc_life_time=`/usr/bin/mysql -h${host} -P4000 -u${TIDB_USER} ${password_str} -Nse "select variable_value from mysql.tidb where variable_name='tikv_gc_life_time';"`
 echo "Old TiKV GC life time is ${gc_life_time}"
 
+function reset_gc_lifetime() {
+echo "Reset TiKV GC life time to ${gc_life_time}"
+/usr/bin/mysql -h${host} -P4000 -u${TIDB_USER} ${password_str} -Nse "update mysql.tidb set variable_value='${gc_life_time}' where variable_name='tikv_gc_life_time';"
+/usr/bin/mysql -h${host} -P4000 -u${TIDB_USER} ${password_str} -Nse "select variable_name,variable_value from mysql.tidb where variable_name='tikv_gc_life_time';"
+}
+trap "reset_gc_lifetime" EXIT
+
 echo "Increase TiKV GC life time to 3h"
 /usr/bin/mysql -h${host} -P4000 -u${TIDB_USER} ${password_str} -Nse "update mysql.tidb set variable_value='3h' where variable_name='tikv_gc_life_time';"
 /usr/bin/mysql -h${host} -P4000 -u${TIDB_USER} ${password_str} -Nse "select variable_name,variable_value from mysql.tidb where variable_name='tikv_gc_life_time';"
+
 
 if [ -n "{{ .Values.initialCommitTs }}" ];
 then
@@ -36,15 +44,19 @@ fi
   --tidb-force-priority=LOW_PRIORITY \
   {{ .Values.backupOptions }} ${snapshot_args:-}
 
-echo "Reset TiKV GC life time to ${gc_life_time}"
-/usr/bin/mysql -h${host} -P4000 -u${TIDB_USER} ${password_str} -Nse "update mysql.tidb set variable_value='${gc_life_time}' where variable_name='tikv_gc_life_time';"
-/usr/bin/mysql -h${host} -P4000 -u${TIDB_USER} ${password_str} -Nse "select variable_name,variable_value from mysql.tidb where variable_name='tikv_gc_life_time';"
+bucket={{ .Values.gcp.bucket }}
+backup_name="$(basename "${dirname}")"
+backup_base_dir="$(dirname "${dirname}")"
 
 {{- if .Values.gcp }}
-uploader \
-  --cloud=gcp \
-  --bucket={{ .Values.gcp.bucket }} \
-  --backup-dir=${dirname}
+cat <<EOF > /tmp/rclone.conf
+[gcp]
+type = google cloud storage
+bucket_policy_only = true
+EOF
+
+  tar -cf - ${backup_name} -C ${backup_base_dir} | pigz -p 16 > ${backup_base_dir}/${backup_name}.tgz \
+  | rclone --config /tmp/rclone.conf rcat gcp:${bucket}/${backup_name}/${backup_name}.tgz
 {{- end }}
 
 {{- if .Values.ceph }}
