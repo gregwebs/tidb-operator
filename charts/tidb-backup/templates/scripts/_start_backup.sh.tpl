@@ -44,11 +44,12 @@ fi
   --tidb-force-priority=LOW_PRIORITY \
   {{ .Values.backupOptions }} ${snapshot_args:-}
 
-bucket={{ .Values.gcp.bucket }}
+
 backup_name="$(basename "${dirname}")"
 backup_base_dir="$(dirname "${dirname}")"
-
 {{- if .Values.gcp }}
+set -x
+bucket={{ .Values.gcp.bucket }}
 creds=${GOOGLE_APPLICATION_CREDENTIALS:-""}
 if ! [[ -z $creds ]] ; then
 creds = "service_account_file = ${creds}"
@@ -61,7 +62,8 @@ bucket_policy_only = true
 $creds
 EOF
 
-  tar -cf - ${backup_name} -C ${backup_base_dir} | pigz -p 16 > ${backup_base_dir}/${backup_name}.tgz \
+  cd "${backup_base_dir}"
+  tar -cf - "${backup_name}" | pigz -p 16 \
   | rclone --config /tmp/rclone.conf rcat gcp:${bucket}/${backup_name}/${backup_name}.tgz
 {{- end }}
 
