@@ -49,10 +49,16 @@ backup_name="$(basename "${dirname}")"
 backup_base_dir="$(dirname "${dirname}")"
 
 {{- if .Values.gcp }}
+creds=${GOOGLE_APPLICATION_CREDENTIALS:-""}
+if ! [[ -z $creds ]] ; then
+creds = "service_account_file = ${creds}"
+fi
+
 cat <<EOF > /tmp/rclone.conf
 [gcp]
 type = google cloud storage
 bucket_policy_only = true
+$creds
 EOF
 
   tar -cf - ${backup_name} -C ${backup_base_dir} | pigz -p 16 > ${backup_base_dir}/${backup_name}.tgz \

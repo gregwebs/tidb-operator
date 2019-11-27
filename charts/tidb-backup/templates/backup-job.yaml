@@ -22,7 +22,9 @@ spec:
 {{ toYaml .Values.extraLabels | indent 8 }}
     {{- end }}
     spec:
-      serviceAccount: dbaas-backup
+      {{- if .Values.serviceAccount }}
+      serviceAccount: {{ .Values.serviceAccount }}
+      {{- end }}
       containers:
       - name: backup
         image: {{ .Values.image.backup }}
@@ -35,7 +37,7 @@ spec:
         volumeMounts:
         - name: data
           mountPath: "/data"
-      {{- if .Values.gcp }}
+      {{- if .Values.gcp.secretName }}
         - name: gcp-credentials
           mountPath: "/gcp"
           readOnly: true
@@ -43,11 +45,21 @@ spec:
         env:
         - name: BACKUP_NAME
           value: {{ .Values.name | quote }}
-      {{- if .Values.gcp }}
+      {{- if .Values.gcp.secretName }}
         - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /gcp/key.json
+          value: /gcp/credentials.json
       {{- end }}
-      {{- if or .Values.ceph .Values.s3 }}
+      {{- if or .Values.ceph.secretName .Values.s3.secretName }}
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ or .Values.ceph.secretName .Values.s3.secretName }}
+              key: access_key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ or .Values.ceph.secretName .Values.s3.secretName }}
+              key: secret_key
       {{- end }}
         - name: TIDB_USER
           valueFrom:
@@ -64,7 +76,7 @@ spec:
       - name: data
         persistentVolumeClaim:
           claimName: {{ .Values.name }}
-    {{- if .Values.gcp }}
+    {{- if .Values.gcp.secretName }}
       - name: gcp-credentials
         secret:
           secretName: {{ .Values.gcp.secretName }}
