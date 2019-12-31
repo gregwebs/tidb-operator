@@ -30,6 +30,12 @@ dataSource:
     storage: 100Gi
     secretName: cloud-storage-secret
     path: s3:bench-data-us/sysbench/sbtest_16_1e7.tar.gz
+    rcloneConfig: |
+      [s3]
+      type = s3
+      provider = AWS
+      env_auth = true
+      region = us-west-2
 
 targetTidbCluster:
   name: tidb-cluster

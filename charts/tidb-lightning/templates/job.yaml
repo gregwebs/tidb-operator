@@ -40,7 +40,7 @@ spec:
         - |
 {{ tuple "scripts/_start_data_retriever.sh.tpl" . | include "helm-toolkit.utils.template" | indent 10 }}
         volumeMounts:
-        - name: credentials
+        - name: rclone-conf
           mountPath: /etc/rclone
         - name: data
           mountPath: /data
@@ -111,9 +111,12 @@ spec:
         persistentVolumeClaim:
           claimName: {{ .Values.dataSource.adhoc.pvcName }}
       {{ else }}
-      - name: credentials
-        secret:
-          secretName: {{ .Values.dataSource.remote.secretName }}
+      - name: rclone-conf
+        configMap:
+          name: rclone-{{ include "tidb-lightning.name" . }}
+          items:
+          - key: config-file
+            path: rclone.conf
       - name: data
         persistentVolumeClaim:
           claimName: {{ include "tidb-lightning.name" . }}

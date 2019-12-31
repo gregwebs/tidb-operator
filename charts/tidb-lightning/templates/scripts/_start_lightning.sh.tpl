@@ -24,7 +24,7 @@ fi
     --server-mode=false \
 {{- if .Values.targetTidbCluster.secretName }}
     --tidb-user=${TIDB_USER} \
-    --tidb-pwd=${TIDB_PASSWORD} \
+    --tidb-password=${TIDB_PASSWORD} \
 {{- else }}
     --tidb-user={{ .Values.targetTidbCluster.user | default "root" }} \
 {{- end }}
